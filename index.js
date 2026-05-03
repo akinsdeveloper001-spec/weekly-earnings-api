@@ -3,23 +3,23 @@ const app = express();
 
 app.get('/get-week', (req, res) => {
   const inputDate = req.query.date;
-
-  // Force proper date parsing
   const date = new Date(inputDate);
 
   if (isNaN(date)) {
-    return res.json({
-      error: "Invalid date format"
-    });
+    return res.json({ error: "Invalid date format" });
   }
 
-  // Get correct year
-  const year = date.getFullYear();
+  // ISO Week calculation (Monday start)
+  const tempDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
 
-  // Calculate week (ISO-like)
-  const firstJan = new Date(year, 0, 1);
-  const days = Math.floor((date - firstJan) / (24 * 60 * 60 * 1000));
-  const week = Math.ceil((days + firstJan.getDay() + 1) / 7);
+  // Set to nearest Thursday (ISO rule)
+  tempDate.setUTCDate(tempDate.getUTCDate() + 4 - (tempDate.getUTCDay() || 7));
+
+  const yearStart = new Date(Date.UTC(tempDate.getUTCFullYear(), 0, 1));
+
+  const week = Math.ceil((((tempDate - yearStart) / 86400000) + 1) / 7);
+
+  const year = tempDate.getUTCFullYear();
 
   res.json({
     week: week,
